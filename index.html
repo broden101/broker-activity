@@ -70,9 +70,6 @@ button.go:disabled{opacity:.4;cursor:wait}
 
 <script>
 const BNAM={"BB":"Verdhana","BK":"JP Morgan","CC":"Mandiri Sekuritas","AK":"UBS Sekuritas","AZ":"Sucor","LG":"Trimegah","XL":"Stockbit","NI":"BNI Sekuritas","ZP":"Maybank","OD":"BRI","DX":"Bahana","YU":"CGS International","TP":"OCBC"};
-const d=new Date();const y=new Date(d);y.setDate(y.getDate()-1);
-if(y.getDay()===0)y.setDate(y.getDate()-2);if(y.getDay()===6)y.setDate(y.getDate()-1);
-document.getElementById('dI').value=y.toISOString().slice(0,10);
 const MIN_BROKER_VAL = 30000000000; // Rp30M per broker per stock
 
 function eI(id){return document.getElementById(id)}
@@ -85,9 +82,10 @@ async function fetchD(){
   if(!brs){sE('Pilih minimal 1 broker');b.disabled=false;b.textContent='▣ SCAN';return}
   const dt=eI('dI').value;
   eI('mainC').innerHTML='<div class="ld">Scanning '+brs.split(',').length+' brokers</div>';
-  eI('dtL').textContent=dt;
+  eI('dtL').textContent=dt||'latest';
   try{
-    const r=await fetch('/api/scan?brokers='+encodeURIComponent(brs)+'&date='+dt+'&minVal=0');
+    const q='brokers='+encodeURIComponent(brs)+(dt?'&date='+dt:'')+'&minVal=0';
+    const r=await fetch('/api/scan?'+q);
     if(!r.ok)throw Error('HTTP '+r.status);
     const d=await r.json();if(d.error)throw Error(d.error);
     ren(d,brs.split(',').map(x=>x.trim()));
@@ -96,6 +94,7 @@ async function fetchD(){
 }
 
 function ren(d,brs){
+  eI('dI').value = d.date;
   const brokers = d.brokers;
   // Group by stock
   const byStock = {};
@@ -112,6 +111,7 @@ function ren(d,brs){
   });
 
   const codes = Object.keys(byStock).sort((a,b) => byStock[b].total - byStock[a].total);
+  eI('dtL').textContent = d.date + ' · ' + codes.length + ' stocks';
   if (!codes.length) {
     eI('mainC').innerHTML = '<div style="padding:40px;text-align:center;color:#555;font-size:11px">Ga ada transaksi di atas Rp30M per broker</div>';
     return;
@@ -135,7 +135,6 @@ function ren(d,brs){
   });
 
   eI('mainC').innerHTML = h;
-  eI('dtL').textContent = eI('dI').value + ' · ' + codes.length + ' stocks';
 }
 
 document.getElementById('brS').addEventListener('change',fetchD);
