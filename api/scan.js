@@ -7,7 +7,7 @@ const BROKER_NAMES = {
   BB: 'Verdhana', BK: 'JP Morgan', CC: 'Mandiri Sekuritas',
   AK: 'UBS Sekuritas', AZ: 'Sucor', LG: 'Trimegah', XL: 'Stockbit',
   NI: 'BNI Sekuritas', ZP: 'Maybank', OD: 'BRI', DX: 'Bahana',
-  YU: 'Trimegah', TP: 'Sucor',
+  YU: 'Trimegah', TP: 'OCBC',
 };
 
 function makeSig(path, ts) {
