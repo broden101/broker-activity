@@ -5,8 +5,9 @@ const API_BASE = 'https://apiv2.tradersaham.com/api';
 const SECRET = process.env.TRS_SECRET || 'trs_idx_v2_2024';
 const BROKER_NAMES = {
   BB: 'Verdhana', BK: 'JP Morgan', CC: 'Mandiri Sekuritas',
-  AK: 'UBS Sekuritas', YU: 'Trimegah', TP: 'Sucor', XL: 'BCA',
-  NI: 'NH Korindo', ZP: 'Phillip', AZ: 'Sinarmas',
+  AK: 'UBS Sekuritas', AZ: 'Sucor', LG: 'Trimegah', XL: 'Stockbit',
+  NI: 'BNI Sekuritas', ZP: 'Maybank', OD: 'BRI', DX: 'Bahana',
+  YU: 'Trimegah', TP: 'Sucor',
 };
 
 function makeSig(path, ts) {
