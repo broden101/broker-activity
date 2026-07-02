@@ -107,7 +107,7 @@ module.exports = async (req, res) => {
     const result = { date: dateStr, all_stocks: codes.length, brokers: {} };
     for (const bc of brList) {
       result.brokers[bc] = Object.values(brokerMap[bc]).sort(
-        (a, b) => b.total_lot - a.total_lot
+        (a, b) => b.total_value - a.total_value
       );
     }
 
