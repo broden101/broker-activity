@@ -36,11 +36,8 @@ function apiGet(path, params = {}) {
       let data = '';
       res.on('data', (c) => (data += c));
       res.on('end', () => {
-        try {
-          resolve(JSON.parse(data));
-        } catch {
-          resolve(null);
-        }
+        try { resolve(JSON.parse(data)); }
+        catch { resolve(null); }
       });
     }).on('error', reject);
   });
@@ -56,7 +53,6 @@ module.exports = async (req, res) => {
     const brList = brokers.split(',').map((b) => b.trim().toUpperCase()).filter(Boolean);
     const minValue = parseInt(minVal) || 0;
 
-    // Get foreign flow first to know which stocks to scan
     const ff = await apiGet('/market-insight/foreign-flow');
     if (!ff) return res.status(500).json({ error: 'Failed to get foreign flow' });
 
@@ -74,24 +70,30 @@ module.exports = async (req, res) => {
     const brokerMap = {};
     brList.forEach((b) => (brokerMap[b] = {}));
 
-    // Scan in batches
-    for (let i = 0; i < codes.length; i++) {
-      await new Promise((r) => setTimeout(r, 120));
-      const data = await apiGet('/analytics/broksum', {
-        stock_code: codes[i],
-        start_date: dateStr,
-        end_date: dateStr,
-      });
-      if (!data || !data.tape) continue;
-      for (const t of data.tape) {
-        if (brList.includes(t.broker_code)) {
+    // Scan in batches — 5 concurrent
+    const batchSize = 5;
+    for (let i = 0; i < codes.length; i += batchSize) {
+      const batch = codes.slice(i, i + batchSize);
+      const results = await Promise.all(
+        batch.map((code) =>
+          apiGet('/analytics/broksum', {
+            stock_code: code,
+            start_date: dateStr,
+            end_date: dateStr,
+          }).then((data) => ({ code, data }))
+        )
+      );
+      for (const { code, data } of results) {
+        if (!data || !data.tape) continue;
+        for (const t of data.tape) {
+          if (!brList.includes(t.broker_code)) continue;
           const bc = t.broker_code;
           const tv = parseInt(t.total_value) || 0;
           if (tv < minValue) continue;
-          brokerMap[bc][codes[i]] = {
-            stock: codes[i],
-            name: stocks[codes[i]]?.stock_name || '',
-            close: stocks[codes[i]]?.close || 0,
+          brokerMap[bc][code] = {
+            stock: code,
+            name: stocks[code]?.stock_name || '',
+            close: stocks[code]?.close || 0,
             status: t.status,
             type: t.broker_type,
             net_lot: parseInt(t.net_lot) || 0,
