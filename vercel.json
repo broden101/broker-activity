@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/scan.mjs": {
+      "runtime": "@vercel/node@5",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
